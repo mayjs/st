@@ -38,8 +38,21 @@ enum glyph_attribute {
 	ATTR_WRAP       = 1 << 8,
 	ATTR_WIDE       = 1 << 9,
 	ATTR_WDUMMY     = 1 << 10,
+	ATTR_SIXEL      = 1 << 11,
 	ATTR_BOLD_FAINT = ATTR_BOLD | ATTR_FAINT,
 };
+
+typedef struct _ImageList {
+	struct _ImageList *next, *prev;
+	unsigned char *pixels;
+	void *pixmap;
+	int width;
+	int height;
+	int x;
+	int y;
+	int should_delete;
+} ImageList;
+
 
 enum selection_mode {
 	SEL_IDLE = 0,
@@ -87,6 +100,38 @@ typedef struct {
 	void (*func)(const Arg *);
 	const Arg arg;
 } MouseKey;
+
+typedef struct {
+	Glyph attr; /* current char attributes */
+	int x;
+	int y;
+	char state;
+} TCursor;
+
+/* Internal representation of the screen */
+typedef struct {
+	int row;      /* nb row */
+	int col;      /* nb col */
+	Line *line;   /* screen */
+	Line *alt;    /* alternate screen */
+	Line hist[HISTSIZE]; /* history buffer */
+	int histi;    /* history index */
+	int scr;      /* scroll back */
+	int *dirty;   /* dirtyness of lines */
+	TCursor c;    /* cursor */
+	int ocx;      /* old cursor col */
+	int ocy;      /* old cursor row */
+	int top;      /* top    scroll limit */
+	int bot;      /* bottom scroll limit */
+	int mode;     /* terminal mode flags */
+	int esc;      /* escape state flags */
+	char trantbl[4]; /* charset table translation */
+	int charset;  /* current charset */
+	int icharset; /* selected charset for sequence */
+	int *tabs;
+	ImageList *images;     /* sixel images */
+    ImageList *images_alt; /* sixel images for alternate screen */
+} Term;
 
 void die(const char *, ...);
 void redraw(void);
